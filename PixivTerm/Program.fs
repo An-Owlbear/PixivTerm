@@ -32,7 +32,7 @@ module main =
         let response = viewIllust id
         let singlePageUrl = response.MetaSinglePage.OriginalImageUrl
         match singlePageUrl with
-        | null -> printfn "multipage illust"
+        | null -> viewAlbum response
         | _ -> viewSingleImage singlePageUrl
     
     // recommended illusts
