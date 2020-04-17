@@ -32,14 +32,28 @@ module main =
         let response = viewIllust id
         let singlePageUrl = response.MetaSinglePage.OriginalImageUrl
         match singlePageUrl with
-        | null -> printf "multipage illust"
+        | null -> printfn "multipage illust"
         | _ -> viewSingleImage singlePageUrl
+    
+    // recommended illusts
+    let recIllusts () =
+        let illusts = recommended ()
+        illusts |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                           (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+    
+    // popular illusts search
+    let popularIllusts searchTerm =
+        let illusts = searchPopular searchTerm
+        illusts |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                           (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
     
     // matches the command from input
     let matchCommand (command : string) =
         let commands = command.Split " "
         match commands.[0] with
         | "illust" -> illust commands.[1]
+        | "recommended" -> recIllusts ()
+        | "popular" -> popularIllusts commands.[1]
         | _ -> printfn "Command not found"
     
     // refreshes the tokens if needed

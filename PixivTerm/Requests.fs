@@ -19,9 +19,12 @@ module Requests =
         client.SetTokens(access, refresh, device)
         client.RefreshLoginAsync() |> sendRequest
         
-    // Gets a search result
-    let search target =
-        client.SearchIllustsAsync(target) |> sendRequest
+    // Gets a search result for popular illusts
+    let searchPopular target =
+        client.PopularIllustsPreviewAsync(target) |> sendRequest |> fun x -> List.ofSeq x.Illusts
+        
+    let recommended () =
+        client.RecommendedIllustsAsync() |> sendRequest |> fun x -> List.ofSeq x.Illusts
         
     // Methods for viewing and download images
     let viewIllust id =
