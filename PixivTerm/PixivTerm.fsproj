@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="1.0.0-alpha-*" />
       <PackageReference Include="PixivCSharp" Version="0.5.0" />
     </ItemGroup>
 
