@@ -22,10 +22,14 @@ module main =
             printfn "password"
             let password = Console.ReadLine()
             Console.Clear()
-            loginRequest username password
+            let response = loginRequest username password
+            storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken]
+            response
         | _ ->
             let tokenList = tokenString.Split ','
-            refreshLogin tokenList.[0] tokenList.[1] tokenList.[2]
+            let response = refreshLogin tokenList.[0] tokenList.[1] tokenList.[2]
+            storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken]
+            response
             
     // views illust
     let illust id =
