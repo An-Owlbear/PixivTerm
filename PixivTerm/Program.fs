@@ -26,6 +26,7 @@ module main =
             storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken]
             response
         | _ ->
+            printfn "refreshing login"
             let tokenList = tokenString.Split ','
             let response = refreshLogin tokenList.[0] tokenList.[1] tokenList.[2]
             storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken]
@@ -44,6 +45,11 @@ module main =
         let illusts = recommended ()
         illusts |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
                                            (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+    // searches illusts
+    let searchIllusts searchTerm =
+        let illusts = search searchTerm
+        illusts |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                           (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
     
     // popular illusts search
     let popularIllusts searchTerm =
@@ -53,11 +59,14 @@ module main =
     
     // matches the command from input
     let matchCommand (command : string) =
-        let commands = command.Split " "
+        let commandString = command.Replace("  ", " ")
+        let commands = commandString.Split " "
+        let args = [1..commands.Length-1] |> List.map (fun x -> commands.[x].Trim())
         match commands.[0] with
-        | "illust" -> illust commands.[1]
+        | "illust" -> illust (String.Join(" ", args))
         | "recommended" -> recIllusts ()
-        | "popular" -> popularIllusts commands.[1]
+        | "popular" -> popularIllusts (String.Join(" ", args))
+        | "search" -> searchIllusts (String.Join(" ", args))
         | _ -> printfn "Command not found"
     
     // refreshes the tokens if needed
@@ -65,8 +74,9 @@ module main =
         try
             matchCommand command
         with
-        | :? HttpRequestException as ex when ex.Message = "400" -> account <- login tokens; tryCommand command
-        | :? AggregateException as ex when ex.InnerException.Message = "400" -> account <- login tokens; tryCommand command
+        | :? HttpRequestException as ex when ex.Message = "Authentication error" -> account <- login tokens; tryCommand command
+        | :? AggregateException as ex when ex.InnerException.Message = "Authentication error" -> account <- login tokens; tryCommand command
+        | :? AggregateException as ex when ex.InnerException.Message = "400" -> printfn "an error occured"
         
     // main program loop
     let inputLoop () =
@@ -81,6 +91,11 @@ module main =
     [<EntryPoint>]
     let main argv =
         readTokens ()
+        
+        if tokens <> String.Empty then    
+            let tokenList = tokens.Split ","
+            client.SetTokens(tokenList.[0], tokenList.[1], tokenList.[2])
+        
         match argv with
         | _ as args when args.Length = 0 -> inputLoop () |> ignore
         | _ ->
