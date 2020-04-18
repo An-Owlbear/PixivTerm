@@ -1,4 +1,5 @@
 namespace PixivTerm
+open System
 open System.Diagnostics
 open System.IO
 open PixivCSharp
@@ -19,9 +20,13 @@ module Requests =
         client.SetTokens(access, refresh, device)
         client.RefreshLoginAsync() |> sendRequest
         
+    // Get a search result
+    let search (target : string) =
+        client.SearchIllustsAsync(String.Join(" ", target)) |> sendRequest |> fun x -> List.ofSeq x.Illusts
+    
     // Gets a search result for popular illusts
-    let searchPopular target =
-        client.PopularIllustsPreviewAsync(target) |> sendRequest |> fun x -> List.ofSeq x.Illusts
+    let searchPopular (target : string) =
+        client.PopularIllustsPreviewAsync(String.Join(" ", target)) |> sendRequest |> fun x -> List.ofSeq x.Illusts
         
     let recommended () =
         client.RecommendedIllustsAsync() |> sendRequest |> fun x -> List.ofSeq x.Illusts
