@@ -83,9 +83,11 @@ module main =
         match nextUrl with
         | _ as x when x = "" || x = null -> printfn "No next URL"
         | _ ->
-            let response = client.RequestAsync<IllustSearchResult>(nextUrl) |> sendRequest |> fun x -> List.ofSeq x.Illusts
-            response |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
-                                                (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+            let response = client.RequestAsync<IllustSearchResult>(nextUrl) |> sendRequest
+            nextUrl <- response.NextUrl
+            let responseList = response |> fun x -> List.ofSeq x.Illusts
+            responseList |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                                 (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
     
     // matches the command from input
     let matchCommand (command : string) =
