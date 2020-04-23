@@ -1,6 +1,7 @@
 ﻿namespace PixivTerm
 open System
 open System.Net.Http
+open PixivCSharp
 open TokenHandling
 open Requests
 
@@ -62,6 +63,28 @@ module main =
         ranking mode day |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
                                                     (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
     
+    // bookmarks an illust
+    let bookmark id restrict =
+        client.AddBookmarkIllustAsync(id, restrict) |> Async.AwaitIAsyncResult |> Async.RunSynchronously
+        
+    // removes an illust bookmark
+    let removeBookmark id =
+        client.RemoveBookmarkIllustAsync(id) |> Async.AwaitIAsyncResult |> Async.RunSynchronously
+        
+    // views bookmarks
+    let bookmarks () =
+        bookmarksRequest () |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                                    (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+        
+    // gets the next page of a result
+    let nextPage () =
+        match nextUrl with
+        | _ as x when x = "" || x = null -> printfn "No next URL"
+        | _ ->
+            let response = client.RequestAsync<IllustSearchResult>(nextUrl) |> sendRequest |> fun x -> List.ofSeq x.Illusts
+            response |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                                (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+    
     // matches the command from input
     let matchCommand (command : string) =
         let commandString = command.Replace("  ", " ")
@@ -76,6 +99,11 @@ module main =
             rankingIllusts
                 (if args.Length > 0 then args.[0] else "day") 
                 (if args.Length > 1 then Nullable<DateTime>(DateTime.Parse(args.[1])) else Nullable())
+        | "bookmark" -> bookmark args.[0] "public" |> ignore
+        | "unbookmark" -> removeBookmark args.[0] |> ignore
+        | "bookmarks" -> bookmarks ()
+        | "next" ->  nextPage ()
+        | "exit" -> Environment.Exit(0)
         | _ -> printfn "Command not found"
     
     // refreshes the tokens if needed

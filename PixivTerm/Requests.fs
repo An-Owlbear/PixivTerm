@@ -7,6 +7,7 @@ open PixivCSharp
 module Requests =
     let client = PixivClient()
     let mutable account = LoginResponse()
+    let mutable nextUrl = String.Empty
 
     // Runs a task synchronously
     let sendRequest task =
@@ -22,22 +23,38 @@ module Requests =
         
     // Get a search result
     let search (target : string) =
-        client.SearchIllustsAsync(String.Join(" ", target)) |> sendRequest |> fun x -> List.ofSeq x.Illusts
+        let response = client.SearchIllustsAsync(String.Join(" ", target)) |> sendRequest
+        nextUrl <- response.NextUrl
+        response.Illusts |> List.ofSeq
+        
     
     // Gets a search result for popular illusts
     let searchPopular (target : string) =
-        client.PopularIllustsPreviewAsync(String.Join(" ", target)) |> sendRequest |> fun x -> List.ofSeq x.Illusts
+        let response = client.PopularIllustsPreviewAsync(String.Join(" ", target)) |> sendRequest
+        nextUrl <- response.NextUrl
+        response.Illusts |> List.ofSeq
         
     // Gets recommended illusts
     let recommended () =
-        client.RecommendedIllustsAsync() |> sendRequest |> fun x -> List.ofSeq x.Illusts
+        let response = client.RecommendedIllustsAsync() |> sendRequest
+        nextUrl <- response.NextUrl
+        response.Illusts |> List.ofSeq
         
     // Gets ranking illusts
     let ranking mode (day : Nullable<DateTime>) =
-        client.RankingIllustsAsync(mode, day) |> sendRequest |> fun x -> List.ofSeq x.Illusts
+        let response = client.RankingIllustsAsync(mode, day) |> sendRequest
+        nextUrl <- response.NextUrl
+        response.Illusts |> List.ofSeq
+        
+    // Gets a list of bookmarks
+    let bookmarksRequest () =
+        let response = client.BookmarkedIllustsAsync (account.User.ID |> string) |> sendRequest
+        nextUrl <- response.NextUrl
+        response.Illusts |> List.ofSeq
         
     // Methods for viewing and download images
     let viewIllust id =
+        nextUrl <- String.Empty
         client.ViewIllustAsync(id) |> sendRequest
     
     let saveImage filepath (url : string)  =
