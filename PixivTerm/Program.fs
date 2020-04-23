@@ -24,13 +24,15 @@ module main =
             let password = Console.ReadLine()
             Console.Clear()
             let response = loginRequest username password
-            storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken]
+            ID <- response.User.ID
+            storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken] (string ID)
             response
         | _ ->
             printfn "refreshing login"
             let tokenList = tokenString.Split ','
             let response = refreshLogin tokenList.[0] tokenList.[1] tokenList.[2]
-            storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken]
+            ID <- response.User.ID
+            storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken] (string ID)
             response
             
     // views illust
@@ -91,16 +93,26 @@ module main =
         let commands = commandString.Split " "
         let args = [1..commands.Length-1] |> List.map (fun x -> commands.[x].Trim())
         match commands.[0].ToLower() with
-        | "illust" -> illust (String.Join(" ", args))
+        | "illust" ->
+            if args.Length < 1 then printfn "No image ID provided" else
+            illust (String.Join(" ", args))
         | "recommended" -> recIllusts ()
-        | "popular" -> popularIllusts (String.Join(" ", args))
-        | "search" -> searchIllusts (String.Join(" ", args))
+        | "popular" ->
+            if args.Length < 1 then printfn "No tags provided" else
+            popularIllusts (String.Join(" ", args))
+        | "search" ->
+            if args.Length < 1 then printfn "No tags provided" else
+            searchIllusts (String.Join(" ", args))
         | "ranking" ->
             rankingIllusts
                 (if args.Length > 0 then args.[0] else "day") 
                 (if args.Length > 1 then Nullable<DateTime>(DateTime.Parse(args.[1])) else Nullable())
-        | "bookmark" -> bookmark args.[0] "public" |> ignore
-        | "unbookmark" -> removeBookmark args.[0] |> ignore
+        | "bookmark" ->
+            if args.Length < 1 then printfn "No image ID provided" else
+            bookmark args.[0] "public" |> ignore
+        | "unbookmark" ->
+            if args.Length < 1 then printfn "No image ID provided" else
+            removeBookmark args.[0] |> ignore
         | "bookmarks" -> bookmarks ()
         | "next" ->  nextPage ()
         | "exit" -> Environment.Exit(0)
@@ -114,7 +126,7 @@ module main =
         | :? HttpRequestException as ex when ex.Message = "Authentication error" -> account <- login tokens; tryCommand command
         | :? AggregateException as ex when ex.InnerException.Message = "Authentication error" -> account <- login tokens; tryCommand command
         | :? AggregateException as ex when ex.InnerException.Message = "400" -> printfn "an error occured"
-        | ex -> printfn "An error occured"
+        | _ -> printfn "An error occured"
         
     // main program loop
     let inputLoop () =
@@ -129,7 +141,6 @@ module main =
     [<EntryPoint>]
     let main argv =
         readTokens ()
-        
         if tokens <> String.Empty then    
             let tokenList = tokens.Split ","
             client.SetTokens(tokenList.[0], tokenList.[1], tokenList.[2])

@@ -3,6 +3,7 @@ open System
 open System.Diagnostics
 open System.IO
 open PixivCSharp
+open TokenHandling
 
 module Requests =
     let client = PixivClient()
@@ -48,7 +49,7 @@ module Requests =
         
     // Gets a list of bookmarks
     let bookmarksRequest () =
-        let response = client.BookmarkedIllustsAsync (account.User.ID |> string) |> sendRequest
+        let response = client.BookmarkedIllustsAsync (ID |> string) |> sendRequest
         nextUrl <- response.NextUrl
         response.Illusts |> List.ofSeq
         
