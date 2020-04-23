@@ -57,16 +57,25 @@ module main =
         illusts |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
                                            (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
     
+    // displays ranking illusts
+    let rankingIllusts mode day =
+        ranking mode day |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                                    (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+    
     // matches the command from input
     let matchCommand (command : string) =
         let commandString = command.Replace("  ", " ")
         let commands = commandString.Split " "
         let args = [1..commands.Length-1] |> List.map (fun x -> commands.[x].Trim())
-        match commands.[0] with
+        match commands.[0].ToLower() with
         | "illust" -> illust (String.Join(" ", args))
         | "recommended" -> recIllusts ()
         | "popular" -> popularIllusts (String.Join(" ", args))
         | "search" -> searchIllusts (String.Join(" ", args))
+        | "ranking" ->
+            rankingIllusts
+                (if args.Length > 0 then args.[0] else "day") 
+                (if args.Length > 1 then Nullable<DateTime>(DateTime.Parse(args.[1])) else Nullable())
         | _ -> printfn "Command not found"
     
     // refreshes the tokens if needed
@@ -77,6 +86,7 @@ module main =
         | :? HttpRequestException as ex when ex.Message = "Authentication error" -> account <- login tokens; tryCommand command
         | :? AggregateException as ex when ex.InnerException.Message = "Authentication error" -> account <- login tokens; tryCommand command
         | :? AggregateException as ex when ex.InnerException.Message = "400" -> printfn "an error occured"
+        | ex -> printfn "An error occured"
         
     // main program loop
     let inputLoop () =

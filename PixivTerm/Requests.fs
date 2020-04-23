@@ -28,8 +28,13 @@ module Requests =
     let searchPopular (target : string) =
         client.PopularIllustsPreviewAsync(String.Join(" ", target)) |> sendRequest |> fun x -> List.ofSeq x.Illusts
         
+    // Gets recommended illusts
     let recommended () =
         client.RecommendedIllustsAsync() |> sendRequest |> fun x -> List.ofSeq x.Illusts
+        
+    // Gets ranking illusts
+    let ranking mode (day : Nullable<DateTime>) =
+        client.RankingIllustsAsync(mode, day) |> sendRequest |> fun x -> List.ofSeq x.Illusts
         
     // Methods for viewing and download images
     let viewIllust id =
