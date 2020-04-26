@@ -18,14 +18,13 @@ module TokenHandling =
     let storeTokens (tokens : string list) =
         let writeString = String.Join(",", tokens @ [string ID])
         
-        if not (File.Exists("tokens.txt")) then
-             File.Create("tokens.txt") |> ignore
-        
-        File.WriteAllText("tokens.txt", writeString)
+        use sw = new StreamWriter("tokens.txt", false)
+        sw.Write writeString
         
     let readTokens () =
          if not (File.Exists("tokens.txt")) then
-             File.Create("tokens.txt") |> ignore
+             let file = File.Create("tokens.txt")
+             file.Close()
          
          try
              let fileString = File.ReadAllText("tokens.txt")
