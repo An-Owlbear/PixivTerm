@@ -46,24 +46,24 @@ module main =
     // recommended illusts
     let recIllusts () =
         let illusts = recommended ()
-        illusts |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
-                                           (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+        illusts |> List.iter (fun x -> printfn "%s - by %s (%s) | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                           (x.User.ID |> string) (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
     // searches illusts
     let searchIllusts searchTerm =
         let illusts = search searchTerm
-        illusts |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
-                                           (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+        illusts |> List.iter (fun x -> printfn "%s - by %s (%s) | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                           (x.User.ID |> string) (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
     
     // popular illusts search
     let popularIllusts searchTerm =
         let illusts = searchPopular searchTerm
-        illusts |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
-                                           (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+        illusts |> List.iter (fun x -> printfn "%s - by %s (%s) | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                           (x.User.ID |> string) (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
     
     // displays ranking illusts
     let rankingIllusts mode day =
-        ranking mode day |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
-                                                    (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+        ranking mode day |> List.iter (fun x -> printfn "%s - by %s (%s) | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                                    (x.User.ID |> string) (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
     
     // bookmarks an illust
     let bookmark id restrict =
@@ -75,8 +75,20 @@ module main =
         
     // views bookmarks
     let bookmarks () =
-        bookmarksRequest () |> List.iter (fun x -> printfn "%s - by %s | %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
-                                                    (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+        bookmarksRequest () |> List.iter (fun x -> printfn "%s - by %s (%s)| %s bookmarks | %s views | (ID - %s)" x.Title x.User.Name
+                                                    (x.User.ID |> string) (x.TotalBookmarks.ToString()) (x.TotalView.ToString()) (x.ID.ToString()))
+        
+    // Follows a user
+    let followUser user =
+        client.FollowAsync(user) |> Async.AwaitIAsyncResult |> Async.RunSynchronously
+    
+    // Unfollows a user
+    let unFollowUser user =
+        client.RemoveFollowAsync(user) |> Async.AwaitIAsyncResult |> Async.RunSynchronously
+        
+    // Views followed users
+    let following () =
+        followingRequest () |> List.iter (fun x -> printfn "%s | ID - %s" x.User.Name (x.User.ID |> string))
         
     // gets the next page of a result
     let nextPage () =
@@ -116,6 +128,13 @@ module main =
             if args.Length < 1 then printfn "No image ID provided" else
             removeBookmark args.[0] |> ignore
         | "bookmarks" -> bookmarks ()
+        | "follow" ->
+            if args.Length < 1 then printfn "No user ID provided" else
+            followUser args.[0] |> ignore
+        | "unfollow" ->
+            if args.Length < 1 then printfn "No user ID provided" else
+            unFollowUser args.[0] |> ignore
+        | "following" -> following ()
         | "next" ->  nextPage ()
         | "exit" -> Environment.Exit(0)
         | _ -> printfn "Command not found"
@@ -127,7 +146,8 @@ module main =
         with
         | :? HttpRequestException as ex when ex.Message = "Authentication error" -> account <- login tokens; tryCommand command
         | :? AggregateException as ex when ex.InnerException.Message = "Authentication error" -> account <- login tokens; tryCommand command
-        | :? AggregateException as ex when ex.InnerException.Message = "400" -> printfn "an error occured"
+        | :? AggregateException as ex when ex.InnerException.Message = "404" -> printfn "403 not found"
+        | :? AggregateException as ex when ex.InnerException.Message = "400" -> printfn "an error occured %s" ex.Message
         | _ -> printfn "An error occured"
         
     // main program loop

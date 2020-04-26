@@ -49,9 +49,15 @@ module Requests =
         
     // Gets a list of bookmarks
     let bookmarksRequest () =
-        let response = client.BookmarkedIllustsAsync (ID |> string) |> sendRequest
+        let response = client.BookmarkedIllustsAsync(ID |> string) |> sendRequest
         nextUrl <- response.NextUrl
         response.Illusts |> List.ofSeq
+        
+    // Gets a list of followed users
+    let followingRequest () =
+        let response = client.FollowingAsync(ID |> string) |> sendRequest
+        nextUrl <- response.NextUrl
+        response.UserPreviews |> List.ofSeq
         
     // Methods for viewing and download images
     let viewIllust id =
