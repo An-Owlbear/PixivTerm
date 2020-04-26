@@ -25,14 +25,14 @@ module main =
             Console.Clear()
             let response = loginRequest username password
             ID <- response.User.ID
-            storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken] (string ID)
+            storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken]
             response
         | _ ->
             printfn "refreshing login"
             let tokenList = tokenString.Split ','
             let response = refreshLogin tokenList.[0] tokenList.[1] tokenList.[2]
             ID <- response.User.ID
-            storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken] (string ID)
+            storeTokens [response.AccessToken; response.RefreshToken; response.DeviceToken]
             response
             
     // views illust

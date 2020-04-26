@@ -15,7 +15,7 @@ module TokenHandling =
         filename
 
     // functions to store/read tokens
-    let storeTokens (tokens : string list) (id : string) =
+    let storeTokens (tokens : string list) =
         let writeString = String.Join(",", tokens @ [string ID])
         File.WriteAllText("tokens.txt", writeString)
         
