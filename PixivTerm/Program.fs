@@ -162,9 +162,7 @@ module main =
     // Main program 
     [<EntryPoint>]
     let main argv =
-        if not (readTokens ()) then
-            account <- login tokens
-        
+        readTokens |> ignore
         match argv with
         | _ as args when args.Length = 0 -> inputLoop () |> ignore
         | _ ->
