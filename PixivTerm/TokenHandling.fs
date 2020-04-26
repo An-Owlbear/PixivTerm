@@ -17,10 +17,23 @@ module TokenHandling =
     // functions to store/read tokens
     let storeTokens (tokens : string list) =
         let writeString = String.Join(",", tokens @ [string ID])
+        
+        if not (File.Exists("tokens.txt")) then
+             File.Create("tokens.txt") |> ignore
+        
         File.WriteAllText("tokens.txt", writeString)
         
     let readTokens () =
-         let fileString = File.ReadAllText("tokens.txt")
-         let fileArray = fileString.Split ","
-         ID <- fileArray.[fileArray.Length - 1] |> int
-         tokens <- String.Join(",", ([0..2] |> List.map (fun x -> fileArray.[x])))
+         if not (File.Exists("tokens.txt")) then
+             File.Create("tokens.txt") |> ignore
+         
+         try
+             let fileString = File.ReadAllText("tokens.txt")
+             let fileArray = fileString.Split ","
+             ID <- fileArray.[fileArray.Length - 1] |> int
+             tokens <- String.Join(",", ([0..2] |> List.map (fun x -> fileArray.[x])))
+             true
+         with
+         | _ ->
+             File.WriteAllText("tokens.txt", String.Empty)
+             false

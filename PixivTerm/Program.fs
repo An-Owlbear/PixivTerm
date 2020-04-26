@@ -162,10 +162,8 @@ module main =
     // Main program 
     [<EntryPoint>]
     let main argv =
-        readTokens ()
-        if tokens <> String.Empty then    
-            let tokenList = tokens.Split ","
-            client.SetTokens(tokenList.[0], tokenList.[1], tokenList.[2])
+        if not (readTokens ()) then
+            account <- login tokens
         
         match argv with
         | _ as args when args.Length = 0 -> inputLoop () |> ignore
